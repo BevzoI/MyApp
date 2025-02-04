@@ -12,6 +12,7 @@ const Post = ({
   onLocationPress = () => {},
   onCommentsPress = () => {},
 }) => {
+  // Обрізаємо локацію, якщо вона довше 30 символів
   const truncatedLocation =
     location?.length > 30 ? location.substring(0, 27) + "..." : location;
 

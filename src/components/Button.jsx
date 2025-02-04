@@ -1,9 +1,16 @@
 import { TouchableOpacity, StyleSheet } from "react-native";
 import { colors } from "../../styles/global";
 
-const Button = ({ children, onPress, buttonStyle }) => {
+const Button = ({ children, onPress, buttonStyle, isDisabled }) => {
   return (
-    <TouchableOpacity style={[style.button, buttonStyle]} onPress={onPress}>
+    <TouchableOpacity
+      style={[
+        style.button,
+        isDisabled ? style.buttonUnactive : null,
+        buttonStyle,
+      ]}
+      onPress={onPress}
+    >
       {children}
     </TouchableOpacity>
   );
@@ -17,5 +24,9 @@ const style = StyleSheet.create({
     backgroundColor: colors.orange,
     paddingVertical: 16,
     paddingHorizontal: 32,
+  },
+  buttonUnactive: {
+    backgroundColor: colors.light_gray,
+    color: colors.text_gray,
   },
 });

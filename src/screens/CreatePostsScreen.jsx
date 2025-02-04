@@ -1,4 +1,5 @@
 import { FC, useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Image,
   KeyboardAvoidingView,
@@ -6,7 +7,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
+import { createPost } from "../redux/post/postOperations";
+import { selectPostCreate } from "../redux/post/postSelectors";
+import { selectUser } from "../redux/user/userSelectors";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import TrashCan from "../../icons/TrashCan";
 import CameraIcon from "../../icons/Camera";
@@ -15,6 +20,7 @@ import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplet
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import MapMarkerGray from "../../icons/MapMarkerGray";
+import { uploadImage } from "../services/firebaseStore";
 
 import { colors } from "../../styles/global";
 
@@ -24,7 +30,9 @@ import Input from "../components/Input";
 const PLACES_KEY = "AIzaSyAhxqfyeRiiSj3Os9KyN3TcVFCxk6hQqh0";
 
 const CreatePostScreen = ({ navigation, route }) => {
+  const dispatch = useDispatch();
   const [facing] = useState("back");
+  const { user } = useSelector(selectUser);
   const [permission, requestPermission] = useCameraPermissions();
   const [selectedImage, setSelectedImage] = useState(null);
   const [title, setTitle] = useState("");
@@ -32,6 +40,13 @@ const CreatePostScreen = ({ navigation, route }) => {
   const cameraView = useRef(null);
   const placesRef = useRef(null);
   const [location, setLocation] = useState(null);
+  const { lastPost, isLoading, error } = useSelector(selectPostCreate);
+
+  useEffect(() => {
+    if (lastPost) {
+      navigation.navigate("PostsScreen");
+    }
+  }, [lastPost]);
 
   if (!permission) {
     return <View style={styles.section} />;
@@ -92,6 +107,25 @@ const CreatePostScreen = ({ navigation, route }) => {
     placesRef.current?.clear();
   };
 
+  const uploadImageToStorage = async () => {
+    if (!selectedImage) return;
+
+    try {
+      const response = await fetch(selectedImage);
+      const file = await response.blob();
+      const fileName = selectedImage.split("/").pop(); // Отримуємо ім'я файлу з URI
+      const fileType = file.type; // Отримуємо тип файлу
+      const imageFile = new File([file], fileName, { type: fileType });
+
+      const uploadedImageUrl = await uploadImage(user.uid, imageFile, fileName);
+
+      return uploadedImageUrl;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  };
+
   const onPublish = async () => {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -105,7 +139,9 @@ const CreatePostScreen = ({ navigation, route }) => {
       setLocation(currentLocation.coords);
 
       const post = {
-        image: selectedImage,
+        id: user.uid + Date.now().toString(32),
+        userId: user.uid,
+        image: await uploadImageToStorage(selectedImage),
         title,
         address,
         location: {
@@ -114,13 +150,10 @@ const CreatePostScreen = ({ navigation, route }) => {
         },
       };
 
-      console.log("Post with location:", post);
-
+      console.log("post:", post);
       onClearData();
 
-      navigation.navigate("PostsScreen", {
-        post: post,
-      });
+      dispatch(createPost(post));
     } catch (error) {
       console.log("Error publishing post:", error);
       alert("Помилка при публікації поста");
@@ -218,16 +251,22 @@ const CreatePostScreen = ({ navigation, route }) => {
           </View>
         </KeyboardAvoidingView>
 
-        <Button onPress={onPublish} isDisabled={isDisabled}>
-          <Text
-            style={{
-              ...styles.btnText,
-              ...(isDisabled ? styles.unactiveBtnText : null),
-            }}
-          >
-            Опублікувати
-          </Text>
-        </Button>
+        {isLoading ? (
+          <ActivityIndicator size="large" />
+        ) : (
+          <Button onPress={onPublish} isDisabled={isDisabled}>
+            <Text
+              style={{
+                ...styles.btnText,
+                ...(isDisabled ? styles.unactiveBtnText : null),
+              }}
+            >
+              Опублікувати
+            </Text>
+          </Button>
+        )}
+
+        {error && <Text style={styles.error}>{error}</Text>}
       </View>
 
       <View
@@ -342,5 +381,10 @@ const styles = StyleSheet.create({
     top: 10,
     left: 0,
     zIndex: 1000,
+  },
+  error: {
+    color: colors.red,
+    textAlign: "center",
+    fontSize: 16,
   },
 });

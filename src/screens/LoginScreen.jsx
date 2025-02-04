@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,12 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import { selectIsLoading, selectError } from "../redux/user/userSelectors";
+import { loginUser } from "../redux/user/userOperations";
+import { resetError } from "../redux/user/userSlice";
 
 import { colors } from "../../styles/global";
 
@@ -24,6 +29,16 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
+  const dispatch = useDispatch();
+
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+
+  console.log(isLoading);
+
+  useEffect(() => {
+    dispatch(resetError());
+  }, []);
 
   const handleEmailChange = (value) => {
     setEmail(value);
@@ -42,7 +57,7 @@ const LoginScreen = ({ navigation }) => {
   const onLogin = async () => {
     console.log("login");
     console.log(email, password);
-    navigation.navigate("Home");
+    dispatch(loginUser({ email, password }));
   };
 
   const onSignUp = () => {
@@ -90,11 +105,17 @@ const LoginScreen = ({ navigation }) => {
             </View>
 
             <View style={[styles.innerContainer, styles.buttonContainer]}>
-              <Button onPress={onLogin}>
-                <Text style={[styles.baseText, styles.loginButtonText]}>
-                  Увійти
-                </Text>
-              </Button>
+              {isLoading ? (
+                <ActivityIndicator size="large" />
+              ) : (
+                <Button onPress={onLogin}>
+                  <Text style={[styles.baseText, styles.loginButtonText]}>
+                    Увійти
+                  </Text>
+                </Button>
+              )}
+
+              {error && <Text style={styles.errorText}>{error}</Text>}
 
               <View style={styles.signUpContainer}>
                 <Text style={[styles.baseText, styles.passwordButtonText]}>
@@ -174,5 +195,9 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     textDecorationLine: "underline",
+  },
+  errorText: {
+    color: colors.red,
+    textAlign: "center",
   },
 });

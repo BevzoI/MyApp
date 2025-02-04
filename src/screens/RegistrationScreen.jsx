@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
@@ -21,6 +22,11 @@ import Button from "../components/Button";
 import CirclePlusSvg from "../../icons/CirclePlusSvg";
 import CircleCrossSvg from "../../icons/CircleCrossSvg";
 
+import { useSelector, useDispatch } from "react-redux";
+import { selectIsLoading, selectError } from "../redux/user/userSelectors";
+import { registerUser } from "../redux/user/userOperations";
+import { resetError } from "../redux/user/userSlice";
+
 const { width: SCREEN_WIDTH } = Dimensions.get("screen");
 
 const RegistrationScreen = ({ navigation }) => {
@@ -29,6 +35,13 @@ const RegistrationScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(resetError());
+  }, []);
 
   const handlePhotoUpload = async () => {
     try {
@@ -81,7 +94,8 @@ const RegistrationScreen = ({ navigation }) => {
   const onRegister = async () => {
     console.log("register");
     console.log(login, email, password, photo);
-    navigation.navigate("Home");
+    dispatch(registerUser({ email, password, login }));
+    // navigation.navigate("Home");
   };
 
   const onSignUp = () => {
@@ -159,11 +173,17 @@ const RegistrationScreen = ({ navigation }) => {
             </View>
 
             <View style={[styles.innerContainer, styles.buttonContainer]}>
-              <Button onPress={onRegister}>
-                <Text style={[styles.baseText, styles.loginButtonText]}>
-                  Зареєструватися
-                </Text>
-              </Button>
+              {isLoading ? (
+                <ActivityIndicator size="large" />
+              ) : (
+                <Button onPress={onRegister}>
+                  <Text style={[styles.baseText, styles.loginButtonText]}>
+                    Зареєструватися
+                  </Text>
+                </Button>
+              )}
+
+              {error && <Text style={styles.errorText}>{error}</Text>}
 
               <View style={styles.signUpContainer}>
                 <Text style={[styles.baseText, styles.passwordButtonText]}>
@@ -272,5 +292,9 @@ const styles = StyleSheet.create({
     height: 120,
     width: 120,
     borderRadius: 16,
+  },
+  errorText: {
+    color: colors.red,
+    textAlign: "center",
   },
 });

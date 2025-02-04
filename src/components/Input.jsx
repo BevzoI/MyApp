@@ -11,6 +11,7 @@ const Input = ({
   autofocus = false,
   secureTextEntry = false,
   onBlur: onBlurCustom,
+  multiline = false,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -38,6 +39,7 @@ const Input = ({
         autoCapitalize="none"
         onFocus={onFocus}
         onBlur={onBlur}
+        multiline={multiline}
       />
 
       {rightButton}
