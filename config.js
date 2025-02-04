@@ -1,30 +1,20 @@
-import {
-  FIREBASE_API_KEY,
-  FIREBASE_AUTH_DOMAIN,
-  FIREBASE_PROJECT_ID,
-  FIREBASE_STORAGE_BUCKET,
-} from "@env";
-
-// Для роботи із firebase обовʼязково треба ініціалізувати проект
 import { initializeApp } from "firebase/app";
-// Функція для підключення авторизації в проект
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
-// Функція для підключення бази даних у проект
 import { getFirestore } from "firebase/firestore";
-// Функція для підключення сховища файлів в проект
 import { getStorage } from "firebase/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
-  apiKey: FIREBASE_API_KEY,
-  authDomain: FIREBASE_AUTH_DOMAIN,
-  projectId: FIREBASE_PROJECT_ID,
-  storageBucket: FIREBASE_STORAGE_BUCKET,
+  apiKey: "AIzaSyA2WD9DRuJgRvZNRvJoiGuih-xNWlaQvwE", // API ключ
+  authDomain: "hw-14-ea780.firebaseapp.com", // домен аутентифікації
+  projectId: "hw-14-ea780", // ID проєкту
+  storageBucket: "hw-14-ea780.appspot.com", // сховище
+  messagingSenderId: "420803899802", // ID відправника повідомлень
+  appId: "1:420803899802:web:abcd1234abcd1234abcd12", // ID додатка
 };
 
 const app = initializeApp(firebaseConfig);
 
-// Ініціалізація Auth з AsyncStorage для роботи редакс персистора
 export const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });

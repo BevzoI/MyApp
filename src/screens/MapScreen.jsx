@@ -3,7 +3,7 @@ import { View, StyleSheet, Dimensions, Text, Alert } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 
-const MAPS_KEY = "AIzaSyAvJDWtM_VcydTMMfufgfpNwyOQDuF-_gc";
+const MAPS_KEY = "AIzaSyAETyzBKmy48ZvXelCLs0Q9RwxcVOe9yrM";
 
 const MapScreen = ({ navigation, route }) => {
   const [location, setLocation] = useState(null);
